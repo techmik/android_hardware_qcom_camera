@@ -710,6 +710,8 @@ private:
     int  mDumpSkipCnt;
     int  mFocusMode;
 
+    cam_sensor_fps_range_t mSensorFpsRange;
+
     unsigned int mPictureSizeCount;
     unsigned int mPreviewSizeCount;
     int mPowerMode;
@@ -787,6 +789,9 @@ private:
     friend class QCameraStream_record;
     friend class QCameraStream_preview;
     friend class QCameraStream_Snapshot;
+
+    android :: FPSRange* mSupportedFpsRanges;
+    int mSupportedFpsRangesCount;
 
     camera_size_type* mPictureSizes;
     camera_size_type* mPreviewSizes;

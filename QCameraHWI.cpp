@@ -185,7 +185,9 @@ QCameraHardwareInterface(int cameraId, int mode)
                     mPreviewFormat(CAMERA_YUV_420_NV21),
                     mRestartPreview(false),
                     mReleasedRecordingFrame(false),
-                    mStateLiveshot(false)
+                    mStateLiveshot(false),
+		    mSupportedFpsRanges(NULL),
+                    mSupportedFpsRangesCount(0)
 {
     LOGI("QCameraHardwareInterface: E");
     int32_t result = MM_CAMERA_E_GENERAL;
@@ -309,6 +311,9 @@ QCameraHardwareInterface::~QCameraHardwareInterface()
         break;
     }
     mPreviewState = QCAMERA_HAL_PREVIEW_STOPPED;
+
+    if(mSupportedFpsRanges != NULL)
+        delete mSupportedFpsRanges;
 
     freePictureTable();
     freeVideoSizeTable();
