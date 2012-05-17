@@ -331,6 +331,11 @@ end:
     }
     //reset jpeg_offset
     mJpegOffset = 0;
+    if(isLiveSnapshot() && mHalCamCtrl->mStateLiveshot) {
+        deInitBuffer();
+    }
+    mHalCamCtrl->mStateLiveshot = false;
+
     LOGD("%s: X", __func__);
 }
 
@@ -2219,7 +2224,16 @@ void QCameraStream_Snapshot::stop(void)
     status_t ret = NO_ERROR;
 
     LOGV("%s: E", __func__);
-    //Mutex::Autolock l(&snapshotLock);
+
+    if(isLiveSnapshot() && mHalCamCtrl->mStateLiveshot) {
+        if(getSnapshotState() == SNAPSHOT_STATE_JPEG_ENCODING) {
+            LOGV("Destroy Liveshot Jpeg Instance");
+            omxJpegAbort();
+        }
+        deInitBuffer();
+        mHalCamCtrl->mStateLiveshot = false;
+        return;
+    }
 
     if(!mActive) {
       LOGV("%s: Not Active return now", __func__);
@@ -2281,9 +2295,6 @@ void QCameraStream_Snapshot::release()
     LOGV("%s: E", __func__);
     //Mutex::Autolock l(&snapshotLock);
 
-    if(isLiveSnapshot()) {
-        deInitBuffer();
-    }
     if(!mInit){
         LOGE("%s : Stream not Initalized",__func__);
         return;
