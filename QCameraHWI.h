@@ -690,6 +690,9 @@ private:
     int  mFps;
     int  mDebugFps;
     int  mBrightness;
+    int  mContrast;
+    int  mBestShotMode;
+    int  mEffects;
     int  mSkinToneEnhancement;
     int  mDenoiseValue;
     int  mHJR;
