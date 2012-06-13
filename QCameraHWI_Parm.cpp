@@ -996,6 +996,8 @@ void QCameraHardwareInterface::initDefaultParameters()
     } else {
         mParameters.set("video-snapshot-supported", "true");
     }
+    mFullLiveshotEnabled = rc;
+
 
     //Set default power mode
     mParameters.set(CameraParameters::KEY_POWER_MODE,"Normal_Power");
