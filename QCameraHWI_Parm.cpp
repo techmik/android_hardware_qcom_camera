@@ -128,6 +128,9 @@ static thumbnail_size_type thumbnail_sizes[] = {
 { 6144, 432, 288 }, //1.5
 { 5461, 512, 384 }, //1.333333
 { 5006, 352, 288 }, //1.222222
+{ 5461, 320, 240 }, //1.33333
+{ 5006, 176, 144 }, //1.222222
+
 };
 
 static struct camera_size_type zsl_picture_sizes[] = {
@@ -1773,6 +1776,7 @@ static int parseCameraAreaString(const char* str, int max_num_areas,
        pAreas[index].x2 = values[2];
        pAreas[index].y2 = values[3];
        pAreas[index].weight = values[4];
+
        index++;
        start = strchr(end, '('); // serach for next '('
     }
@@ -1916,6 +1920,7 @@ status_t QCameraHardwareInterface::setMeteringAreas(const CameraParameters& para
     if(max_num_mtr_areas == 0) {
         return NO_ERROR;
     }
+
     const char *str = params.get(CameraParameters::KEY_METERING_AREAS);
     if (str == NULL) {
         LOGE("%s: Parameter string is null", __func__);
@@ -2621,11 +2626,14 @@ status_t QCameraHardwareInterface::setJpegThumbnailSize(const CameraParameters& 
     for (unsigned int i = 0; i < thumbnail_sizes_count; ++i) {
        if (width == default_thumbnail_sizes[i].width
          && height == default_thumbnail_sizes[i].height) {
+           thumbnailWidth = width;
+           thumbnailHeight = height;
            mParameters.set(CameraParameters::KEY_JPEG_THUMBNAIL_WIDTH, width);
            mParameters.set(CameraParameters::KEY_JPEG_THUMBNAIL_HEIGHT, height);
            return NO_ERROR;
        }
     }
+    LOGE("error: setting jpeg thumbnail size");
     return BAD_VALUE;
 }
 status_t QCameraHardwareInterface::setPictureSize(const CameraParameters& params)
@@ -4061,6 +4069,5 @@ status_t QCameraHardwareInterface::setNoDisplayMode(const CameraParameters& para
   }
   return NO_ERROR;
 }
-
 
 }; /*namespace android */
