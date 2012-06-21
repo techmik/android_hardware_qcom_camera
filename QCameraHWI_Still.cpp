@@ -1835,7 +1835,7 @@ status_t QCameraStream_Snapshot::receiveRawPicture(mm_camera_ch_data_buf_t* recv
           notifyCb = NULL;
         }
 
-        mStopCallbackLock.unlock();
+        //mStopCallbackLock.unlock();
         if(!mHalCamCtrl->mShutterSoundPlayed) {
             notifyShutter(&crop, TRUE);
         }
@@ -1886,6 +1886,7 @@ status_t QCameraStream_Snapshot::receiveRawPicture(mm_camera_ch_data_buf_t* recv
             notifyCb(CAMERA_MSG_RAW_IMAGE_NOTIFY, 0, 0, mHalCamCtrl->mCallbackCookie);
           }
         }
+        mStopCallbackLock.unlock();
     }
 
     LOGD("%s: X", __func__);
