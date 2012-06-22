@@ -474,7 +474,7 @@ public:
       mm_camera_socket_msg_type msg_type);
 
     int allocate_ion_memory(QCameraHalHeap_t *p_camera_memory, int cnt,
-      int ion_type);
+      int ion_type, int caching_type);
     int deallocate_ion_memory(QCameraHalHeap_t *p_camera_memory, int cnt);
 
     int allocate_ion_memory(QCameraStatHeap_t *p_camera_memory, int cnt,

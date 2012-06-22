@@ -2169,12 +2169,17 @@ status_t QCameraHardwareInterface::sendUnMappingBuf(int ext_mode, int idx, int c
     return NO_ERROR;
 }
 
-int QCameraHardwareInterface::allocate_ion_memory(QCameraHalHeap_t *p_camera_memory, int cnt, int ion_type)
+int QCameraHardwareInterface::allocate_ion_memory(
+  QCameraHalHeap_t *p_camera_memory, int cnt, int ion_type, int caching_type)
 {
   int rc = 0;
   struct ion_handle_data handle_data;
 
-  p_camera_memory->main_ion_fd[cnt] = open("/dev/ion", O_RDONLY);
+  if (caching_type == CACHED) {
+      p_camera_memory->main_ion_fd[cnt] = open("/dev/ion", O_RDONLY);
+  } else {
+      p_camera_memory->main_ion_fd[cnt] = open("/dev/ion", O_RDONLY | O_DSYNC);
+  }
   if (p_camera_memory->main_ion_fd[cnt] < 0) {
     LOGE("Ion dev open failed\n");
     LOGE("Error is %s\n", strerror(errno));
@@ -2360,10 +2365,10 @@ int QCameraHardwareInterface::initHeapMem( QCameraHalHeap_t *heap,
 #ifdef USE_ION
       if (isZSLMode())
         rc = allocate_ion_memory(heap, i, ((0x1 << CAMERA_ZSL_ION_HEAP_ID) |
-         (0x1 << CAMERA_ZSL_ION_FALLBACK_HEAP_ID)));
+         (0x1 << CAMERA_ZSL_ION_FALLBACK_HEAP_ID)), CACHED);
       else
         rc = allocate_ion_memory(heap, i, ((0x1 << CAMERA_ION_HEAP_ID) |
-         (0x1 << CAMERA_ION_FALLBACK_HEAP_ID)));
+         (0x1 << CAMERA_ION_FALLBACK_HEAP_ID)), CACHED);
 
       if (rc < 0) {
         LOGE("%sION allocation failed\n", __func__);
