@@ -109,7 +109,7 @@ typedef enum {
   HAL_DUMP_FRM_VIDEO = 1<<1,
   HAL_DUMP_FRM_MAIN = 1<<2,
   HAL_DUMP_FRM_THUMBNAIL = 1<<3,
-
+  HAL_DUMP_FRM_RDI = 1<<4,
   /*8 bits mask*/
   HAL_DUMP_FRM_MAX = 1 << 8
 } HAL_cam_dump_frm_type_t;
@@ -123,7 +123,7 @@ typedef enum {
 } qQamera_mode_t;
 
 #define HAL_DUMP_FRM_MASK_ALL ( HAL_DUMP_FRM_PREVIEW + HAL_DUMP_FRM_VIDEO + \
-    HAL_DUMP_FRM_MAIN + HAL_DUMP_FRM_THUMBNAIL)
+    HAL_DUMP_FRM_MAIN + HAL_DUMP_FRM_THUMBNAIL + HAL_DUMP_FRM_RDI)
 #define QCAMERA_HAL_PREVIEW_STOPPED    0
 #define QCAMERA_HAL_PREVIEW_START      1
 #define QCAMERA_HAL_PREVIEW_STARTED    2
@@ -488,6 +488,8 @@ public:
     preview_format_info_t getPreviewFormatInfo( );
     bool isCameraReady();
     bool isNoDisplayMode();
+    uint32_t getChannelInterface();
+    void setChannelInterface(uint32_t value);
 
 private:
     int16_t  zoomRatios[MAX_ZOOM_RATIOS];
@@ -521,6 +523,7 @@ private:
     bool isSnapshotRunning();
 
     void processChannelEvent(mm_camera_ch_event_t *, app_notify_cb_t *);
+    void processRdiChannelEvent(mm_camera_ch_event_type_t channelEvent, app_notify_cb_t *);
     void processPreviewChannelEvent(mm_camera_ch_event_type_t channelEvent, app_notify_cb_t *);
     void processRecordChannelEvent(mm_camera_ch_event_type_t channelEvent, app_notify_cb_t *);
     void processSnapshotChannelEvent(mm_camera_ch_event_type_t channelEvent, app_notify_cb_t *);
@@ -618,6 +621,7 @@ private:
     status_t setPowerMode(const CameraParameters& params);
     void takePicturePrepareHardware( );
     status_t setNoDisplayMode(const CameraParameters& params);
+    status_t setChannelInterfaceMask(const CameraParameters& params);
 
     isp3a_af_mode_t getAutoFocusMode(const CameraParameters& params);
     bool isValidDimension(int w, int h);
@@ -635,6 +639,7 @@ private:
     int32_t createPreview();
     int32_t createRecord();
     int32_t createSnapshot();
+    int32_t createRdi();
 
     int getHDRMode();
     //EXIF
@@ -668,6 +673,7 @@ private:
     //mutable Mutex       eventLock;
     Mutex         mCallbackLock;
     Mutex         mPreviewMemoryLock;
+    Mutex         mRdiMemoryLock;
     Mutex         mRecordingMemoryLock;
     Mutex         mAutofocusLock;
     Mutex         mMetaDataWaitLock;
@@ -681,6 +687,7 @@ private:
     QCameraStream       *mStreamRecord;
     QCameraStream       *mStreamSnap;
     QCameraStream       *mStreamLiveSnap;
+    QCameraStream       *mStreamRdi;
 
     cam_ctrl_dimension_t mDimension;
     int  mPreviewWidth, mPreviewHeight;
@@ -789,6 +796,7 @@ private:
     friend class QCameraStream_record;
     friend class QCameraStream_preview;
     friend class QCameraStream_Snapshot;
+    friend class QCameraStream_Rdi;
 
     android :: FPSRange* mSupportedFpsRanges;
     int mSupportedFpsRangesCount;
@@ -817,6 +825,7 @@ private:
      /*preview memory without display case: memory is allocated
       directly by camera */
      QCameraHalHeap_t     mNoDispPreviewMemory;
+     QCameraHalHeap_t     mRdiMemory;
 
      QCameraHalHeap_t     mSnapshotMemory;
      QCameraHalHeap_t     mThumbnailMemory;
@@ -833,6 +842,7 @@ private:
      exif_values_t          mExifValues;                        //Exif values in usable format
      int                    mExifTableNumEntries;            //NUmber of entries in mExifData
      int                 mNoDisplayMode;
+     uint32_t            mChannelInterfaceMask;
 };
 
 }; // namespace android

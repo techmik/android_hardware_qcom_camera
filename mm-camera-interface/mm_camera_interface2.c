@@ -56,6 +56,8 @@ static int mm_camera_util_opcode_2_ch_type(mm_camera_obj_t *my_obj,
     switch(opcode) {
     case MM_CAMERA_OPS_PREVIEW:
         return MM_CAMERA_CH_PREVIEW;
+    case MM_CAMERA_OPS_RDI:
+        return MM_CAMERA_CH_RDI;
     case MM_CAMERA_OPS_ZSL:
     case MM_CAMERA_OPS_SNAPSHOT:
         return MM_CAMERA_CH_SNAPSHOT;
@@ -112,6 +114,7 @@ static uint8_t mm_camera_cfg_is_ch_supported (mm_camera_t * camera,
     case MM_CAMERA_CH_VIDEO:
     case MM_CAMERA_CH_SNAPSHOT:
     case MM_CAMERA_CH_RAW:
+    case MM_CAMERA_CH_RDI:
         return TRUE;
     case MM_CAMERA_CH_MAX:
     default:

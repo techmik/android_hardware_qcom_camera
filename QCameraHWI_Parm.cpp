@@ -741,6 +741,8 @@ void QCameraHardwareInterface::initDefaultParameters()
       mDimension.main_img_format = CAMERA_YUV_420_NV21;
     }
     mDimension.thumb_format    = CAMERA_YUV_420_NV21;
+    mDimension.rdi0_format    = CAMERA_RDI;
+    mDimension.rdi1_format    = CAMERA_RDI;
     LOGV("%s: main_img_format =%d, thumb_format=%d", __func__,
          mDimension.main_img_format, mDimension.thumb_format);
     mDimension.prev_padding_format = CAMERA_PAD_TO_WORD;
@@ -1351,6 +1353,7 @@ status_t QCameraHardwareInterface::setParameters(const CameraParameters& params)
     status_t rc, final_rc = NO_ERROR;
 
     if ((rc = setCameraMode(params)))                   final_rc = rc;
+    if ((rc = setChannelInterfaceMask(params)))         final_rc = rc;
     if ((rc = setPowerMode(params)))                    final_rc = rc;
     if ((rc = setPreviewSize(params)))                  final_rc = rc;
     if ((rc = setVideoSize(params)))                    final_rc = rc;
@@ -4104,9 +4107,10 @@ status_t QCameraHardwareInterface::setNoDisplayMode(const CameraParameters& para
   memset(prop, 0, sizeof(prop));
   property_get("persist.camera.nodisplay", prop, "0");
   int prop_val = atoi(prop);
+  const char *str_val;
 
   if (prop_val == 0) {
-    const char *str_val  = params.get("no-display-mode");
+    str_val  = params.get("no-display-mode");
     if(str_val && strlen(str_val) > 0) {
       mNoDisplayMode = atoi(str_val);
     } else {
@@ -4117,6 +4121,42 @@ status_t QCameraHardwareInterface::setNoDisplayMode(const CameraParameters& para
     mNoDisplayMode = prop_val;
     LOGD("prop mNoDisplayMode =%d", mNoDisplayMode);
   }
+  return NO_ERROR;
+}
+
+status_t QCameraHardwareInterface::setChannelInterfaceMask(const CameraParameters& params)
+{
+  char prop[PROPERTY_VALUE_MAX];
+  memset(prop, 0, sizeof(prop));
+  property_get("persist.camera.channelstream", prop, "0");
+  int prop_val = atoi(prop);
+  uint32_t channel_stream_info;
+
+  if (prop_val == 0) {
+    const char *str_val  = params.get("channel-stream-num");
+    if(str_val && strlen(str_val) > 0 && (atoi(str_val) <= 2)) {
+      channel_stream_info = atoi(str_val);
+    } else {
+      channel_stream_info = STREAM_IMAGE;
+    }
+  } else {
+    channel_stream_info = prop_val;
+  }
+  if (isZSLMode() || (prop_val > 2))
+    channel_stream_info = STREAM_IMAGE;
+
+  if( NO_ERROR != cam_config_set_parm(mCameraId,
+            MM_CAMERA_PARM_CH_INTERFACE, &channel_stream_info)) {
+    LOGE("%s: MM_CAMERA_PARM_CH_INTERFACE failed", __func__);
+    return FAILED_TRANSACTION;
+  }
+  if( NO_ERROR != cam_config_get_parm(mCameraId,
+            MM_CAMERA_PARM_CH_INTERFACE, &mChannelInterfaceMask)) {
+    LOGE("%s: MM_CAMERA_PARM_CH_INTERFACE failed", __func__);
+    return FAILED_TRANSACTION;
+  }
+  mParameters.set("channel-stream-num", mChannelInterfaceMask);
+
   return NO_ERROR;
 }
 

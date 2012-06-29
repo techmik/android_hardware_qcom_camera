@@ -213,6 +213,7 @@ uint32_t mm_camera_get_msm_frame_len(cam_format_t fmt_type,
         }
         break;
     case CAMERA_BAYER_SBGGR10:
+    case CAMERA_RDI:
         *num_planes = 1;
         plane[0] = PAD_TO_WORD(width * height);
         size = plane[0];

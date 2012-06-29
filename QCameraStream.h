@@ -42,6 +42,7 @@ extern "C" {
 #define MM_CAMERA_CH_PREVIEW_MASK    (0x01 << MM_CAMERA_CH_PREVIEW)
 #define MM_CAMERA_CH_VIDEO_MASK      (0x01 << MM_CAMERA_CH_VIDEO)
 #define MM_CAMERA_CH_SNAPSHOT_MASK   (0x01 << MM_CAMERA_CH_SNAPSHOT)
+#define MM_CAMERA_CH_RDI_MASK        (0x01 << MM_CAMERA_CH_RDI)
 
 } /* extern C*/
 
@@ -114,7 +115,7 @@ public:
     virtual status_t takePictureLiveshot(mm_camera_ch_data_buf_t* recvd_frame,
                                  cam_ctrl_dimension_t *dim,
                                  int frame_len){return NO_ERROR;}
-	virtual void setModeLiveSnapshot(bool){;}
+    virtual void setModeLiveSnapshot(bool){;}
     virtual status_t initSnapshotBuffers(cam_ctrl_dimension_t *dim,
                                  int num_of_buf){return NO_ERROR;}
 
@@ -210,7 +211,6 @@ public:
     status_t initPreviewOnlyBuffers();
 
     status_t processPreviewFrame(mm_camera_ch_data_buf_t *frame);
-
     /*init preview buffers with display case*/
     status_t processPreviewFrameWithDisplay(mm_camera_ch_data_buf_t *frame);
     /*init preview buffers without display case*/
@@ -237,10 +237,50 @@ private:
     cam_ctrl_dimension_t     dim;
     struct msm_frame        *mLastQueuedFrame;
     mm_camera_reg_buf_t      mDisplayBuf;
+    mm_camera_reg_buf_t      mRdiBuf;
     mm_cameara_stream_buf_t  mDisplayStreamBuf;
+    mm_cameara_stream_buf_t  mRdiStreamBuf;
     Mutex                   mDisplayLock;
     preview_stream_ops_t   *mPreviewWindow;
     static const int        kPreviewBufferCount = PREVIEW_BUFFER_COUNT;
+    mm_camera_ch_data_buf_t mNotifyBuffer[16];
+    int8_t                  mNumFDRcvd;
+    int                     mVFEOutputs;
+    int                     mHFRFrameCnt;
+    int                     mHFRFrameSkip;
+};
+
+class QCameraStream_Rdi : public QCameraStream {
+public:
+    status_t    init();
+    status_t    start() ;
+    void        stop()  ;
+    void        release() ;
+
+    static QCameraStream*  createInstance(int, camera_mode_t);
+    static void            deleteInstance(QCameraStream *p);
+
+    QCameraStream_Rdi() {};
+    virtual             ~QCameraStream_Rdi();
+    status_t initRdiBuffers();
+    status_t processRdiFrame (mm_camera_ch_data_buf_t *frame);
+    friend class QCameraHardwareInterface;
+
+private:
+    QCameraStream_Rdi(int cameraId, camera_mode_t);
+    /*allocate and free buffers for rdi case*/
+    status_t                 getBufferRdi( );
+    status_t                 freeBufferRdi();
+
+    void                     dumpFrameToFile(struct msm_frame* newFrame);
+
+    int8_t                   my_id;
+    mm_camera_op_mode_type_t op_mode;
+    cam_ctrl_dimension_t     dim;
+    mm_camera_reg_buf_t      mRdiBuf;
+    mm_cameara_stream_buf_t  mRdiStreamBuf;
+    Mutex                   mDisplayLock;
+    static const int        kRdiBufferCount = PREVIEW_BUFFER_COUNT;
     mm_camera_ch_data_buf_t mNotifyBuffer[16];
     int8_t                  mNumFDRcvd;
     int                     mVFEOutputs;

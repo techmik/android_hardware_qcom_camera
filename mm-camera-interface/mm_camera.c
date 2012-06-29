@@ -158,6 +158,8 @@ static mm_camera_channel_type_t mm_camera_util_opcode_2_ch_type(
     switch(opcode) {
     case MM_CAMERA_OPS_PREVIEW:
         return MM_CAMERA_CH_PREVIEW;
+    case MM_CAMERA_OPS_RDI:
+        return MM_CAMERA_CH_RDI;
     case MM_CAMERA_OPS_VIDEO:
         return MM_CAMERA_CH_VIDEO;
     case MM_CAMERA_OPS_SNAPSHOT:
@@ -383,6 +385,10 @@ int32_t mm_camera_set_general_parm(mm_camera_obj_t * my_obj, mm_camera_parm_t *p
       return mm_camera_send_native_ctrl_cmd(my_obj,
                   CAMERA_SET_FULL_LIVESHOT, sizeof(uint32_t), (void *)parm->p_value);
     }
+    case MM_CAMERA_PARM_CH_INTERFACE: {
+      return mm_camera_send_native_ctrl_cmd(my_obj,
+                  CAMERA_SET_CHANNEL_STREAM, sizeof(uint32_t), (void *)parm->p_value);
+    }
 
     case MM_CAMERA_PARM_LOW_POWER_MODE:
       return mm_camera_send_native_ctrl_cmd(my_obj,
@@ -526,6 +532,9 @@ int32_t mm_camera_get_parm(mm_camera_obj_t * my_obj,
     case MM_CAMERA_PARM_PREVIEW_FORMAT:
         *((int *)parm->p_value) = my_obj->properties.preview_format;
         break;
+    case MM_CAMERA_PARM_RDI_FORMAT:
+        *((int *)parm->p_value) = CAMERA_RDI;
+        break;
     case MM_CAMERA_PARM_PREVIEW_SIZES_CNT:
         *((int *)parm->p_value) = my_obj->properties.preview_sizes_cnt;
         break;
@@ -628,6 +637,11 @@ int32_t mm_camera_get_parm(mm_camera_obj_t * my_obj,
         break;
     case MM_CAMERA_PARM_VFE_OUTPUT_ENABLE:
         *((int *)parm->p_value) = my_obj->properties.vfe_output_enable;
+        break;
+    case MM_CAMERA_PARM_CH_INTERFACE:
+        rc = mm_camera_send_native_ctrl_cmd(my_obj,
+                  CAMERA_GET_CHANNEL_STREAM, sizeof(uint32_t), (void *)parm->p_value);
+        my_obj->channel_interface_mask = *((uint32_t *)(parm->p_value));
         break;
     default:
         /* needs to add more implementation */
@@ -812,6 +826,7 @@ int32_t mm_camera_action_start(mm_camera_obj_t *my_obj,
     case MM_CAMERA_OP_MODE_CAPTURE:
         switch(opcode) {
         case MM_CAMERA_OPS_PREVIEW:
+        case MM_CAMERA_OPS_RDI:
         case MM_CAMERA_OPS_SNAPSHOT:
         case MM_CAMERA_OPS_ZSL:
         case MM_CAMERA_OPS_RAW:
@@ -825,6 +840,7 @@ int32_t mm_camera_action_start(mm_camera_obj_t *my_obj,
     case MM_CAMERA_OP_MODE_VIDEO:
         switch(opcode) {
         case MM_CAMERA_OPS_PREVIEW:
+        case MM_CAMERA_OPS_RDI:
         case MM_CAMERA_OPS_VIDEO:
         case MM_CAMERA_OPS_SNAPSHOT:
             rc = mm_camera_ch_fn(my_obj,    ch_type,
@@ -868,6 +884,7 @@ int32_t mm_camera_action_stop(mm_camera_obj_t *my_obj,
     case MM_CAMERA_OP_MODE_CAPTURE:
         switch(opcode) {
         case MM_CAMERA_OPS_PREVIEW:
+        case MM_CAMERA_OPS_RDI:
         case MM_CAMERA_OPS_SNAPSHOT:
         case MM_CAMERA_OPS_ZSL:
         case MM_CAMERA_OPS_RAW:
@@ -882,6 +899,7 @@ int32_t mm_camera_action_stop(mm_camera_obj_t *my_obj,
     case MM_CAMERA_OP_MODE_VIDEO:
         switch(opcode) {
         case MM_CAMERA_OPS_PREVIEW:
+        case MM_CAMERA_OPS_RDI:
         case MM_CAMERA_OPS_VIDEO:
         case MM_CAMERA_OPS_SNAPSHOT:
             rc = mm_camera_ch_fn(my_obj , ch_type,

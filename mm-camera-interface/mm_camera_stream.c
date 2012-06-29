@@ -278,6 +278,7 @@ static uint32_t mm_camera_util_get_v4l2_fmt(cam_format_t fmt,
         *num_planes = 2;
         break;
     case CAMERA_BAYER_SBGGR10:
+    case CAMERA_RDI:
         val= V4L2_PIX_FMT_SBGGR10;
         *num_planes = 1;
         break;
@@ -301,6 +302,9 @@ static int mm_camera_stream_util_set_ext_mode(mm_camera_stream_t *stream)
         switch(stream->stream_type) {
         case MM_CAMERA_STREAM_PREVIEW:
             s_parm.parm.capture.extendedmode = MSM_V4L2_EXT_CAPTURE_MODE_PREVIEW;
+            break;
+        case MM_CAMERA_STREAM_RDI0:
+            s_parm.parm.capture.extendedmode = MSM_V4L2_EXT_CAPTURE_MODE_RDI;
             break;
         case MM_CAMERA_STREAM_SNAPSHOT:
             s_parm.parm.capture.extendedmode = MSM_V4L2_EXT_CAPTURE_MODE_MAIN;
@@ -455,6 +459,9 @@ static int mm_camera_stream_util_reg_buf(mm_camera_obj_t * my_obj,
     switch(stream->stream_type) {
     case MM_CAMERA_STREAM_PREVIEW:
       image_type = OUTPUT_TYPE_P;
+      break;
+    case MM_CAMERA_STREAM_RDI0:
+      image_type = OUTPUT_TYPE_R;
       break;
     case MM_CAMERA_STREAM_SNAPSHOT:
     case MM_CAMERA_STREAM_RAW:

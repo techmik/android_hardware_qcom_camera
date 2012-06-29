@@ -204,7 +204,15 @@ status_t QCameraStream::initChannel(int cameraId,
                                                 preview_notify_cb,
                                                 this);
         LOGV("Buf notify MM_CAMERA_CH_PREVIEW, rc=%d\n",rc);*/
-    }else if(MM_CAMERA_CH_VIDEO_MASK & ch_type_mask){
+    } else if (MM_CAMERA_CH_RDI_MASK & ch_type_mask){
+        rc = cam_ops_ch_acquire(cameraId, MM_CAMERA_CH_RDI);
+        LOGV("%s:ch_acquire MM_CAMERA_CH_RDI, rc=%d\n",__func__, rc);
+        if(MM_CAMERA_OK != rc) {
+                LOGE("%s: rdi channel acquir error =%d\n", __func__, rc);
+                LOGE("%s: X", __func__);
+                return BAD_VALUE;
+        }
+    } else if (MM_CAMERA_CH_VIDEO_MASK & ch_type_mask){
         rc = cam_ops_ch_acquire(cameraId, MM_CAMERA_CH_VIDEO);
         LOGV("%s:ch_acquire MM_CAMERA_CH_VIDEO, rc=%d\n",__func__, rc);
         if(MM_CAMERA_OK != rc) {
@@ -262,7 +270,7 @@ status_t QCameraStream::setFormat(uint8_t ch_type_mask)
     int height = 0; /* height of channel */
     cam_ctrl_dimension_t dim;
     mm_camera_ch_image_fmt_parm_t fmt;
-    int preview_format;
+    int preview_format, rdi_format;
     LOGE("%s: E",__func__);
 
     memset(&dim, 0, sizeof(cam_ctrl_dimension_t));
@@ -275,14 +283,21 @@ status_t QCameraStream::setFormat(uint8_t ch_type_mask)
     char mDeviceName[PROPERTY_VALUE_MAX];
     property_get("ro.product.device",mDeviceName," ");
     memset(&fmt, 0, sizeof(mm_camera_ch_image_fmt_parm_t));
-    if(MM_CAMERA_CH_PREVIEW_MASK & ch_type_mask){
+    if (MM_CAMERA_CH_PREVIEW_MASK & ch_type_mask){
         fmt.ch_type = MM_CAMERA_CH_PREVIEW;
         ret = cam_config_get_parm(mCameraId,
                   MM_CAMERA_PARM_PREVIEW_FORMAT, &preview_format);
         fmt.def.fmt = (cam_format_t)preview_format;
         fmt.def.dim.width = dim.display_width;
         fmt.def.dim.height =  dim.display_height;
-    }else if(MM_CAMERA_CH_VIDEO_MASK & ch_type_mask){
+    } else if (MM_CAMERA_CH_RDI_MASK & ch_type_mask){
+        fmt.ch_type = MM_CAMERA_CH_RDI;
+        ret = cam_config_get_parm(mCameraId,
+                  MM_CAMERA_PARM_RDI_FORMAT, &rdi_format);
+        fmt.def.fmt = (cam_format_t)rdi_format;
+        fmt.def.dim.width = dim.rdi0_width;
+        fmt.def.dim.height =  dim.rdi0_height;
+    } else if (MM_CAMERA_CH_VIDEO_MASK & ch_type_mask){
         fmt.ch_type = MM_CAMERA_CH_VIDEO;
         fmt.video.video.fmt = CAMERA_YUV_420_NV21; //dim.enc_format;
         fmt.video.video.dim.width = dim.video_width;

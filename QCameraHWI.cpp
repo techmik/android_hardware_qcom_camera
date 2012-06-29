@@ -126,6 +126,31 @@ int32_t QCameraHardwareInterface::createPreview()
     return ret;
 }
 
+int32_t QCameraHardwareInterface::createRdi()
+{
+    int32_t ret = MM_CAMERA_OK;
+    LOGV("%s : BEGIN",__func__);
+
+    LOGE("Mymode Preview = %d",myMode);
+    mStreamRdi = QCameraStream_Rdi::createInstance(mCameraId,
+                                                           myMode);
+    if (!mStreamRdi) {
+        LOGE("%s: error - can't creat preview stream!", __func__);
+        return BAD_VALUE;
+    }
+
+    mStreamRdi->setHALCameraControl(this);
+
+    /*now init all the buffers and send to steam object*/
+    ret = mStreamRdi->init();
+    if (MM_CAMERA_OK != ret){
+        LOGE("%s: error - can't init Rdi channel!", __func__);
+        return BAD_VALUE;
+    }
+    LOGV("%s : END",__func__);
+    return ret;
+}
+
 /* constructor */
 QCameraHardwareInterface::
 QCameraHardwareInterface(int cameraId, int mode)
@@ -138,6 +163,7 @@ QCameraHardwareInterface(int cameraId, int mode)
                     mCallbackCookie(0),
                     //mPreviewHeap(0),
                     mStreamDisplay (NULL), mStreamRecord(NULL), mStreamSnap(NULL),
+                    mStreamRdi(NULL),
                     mFps(0),
                     mDebugFps(0),
                     mMaxZoom(0),
@@ -187,7 +213,8 @@ QCameraHardwareInterface(int cameraId, int mode)
                     mReleasedRecordingFrame(false),
                     mStateLiveshot(false),
 		    mSupportedFpsRanges(NULL),
-                    mSupportedFpsRangesCount(0)
+                    mSupportedFpsRangesCount(0),
+                    mChannelInterfaceMask(STREAM_IMAGE)
 {
     LOGI("QCameraHardwareInterface: E");
     int32_t result = MM_CAMERA_E_GENERAL;
@@ -282,6 +309,13 @@ QCameraHardwareInterface(int cameraId, int mode)
         LOGE("%s X: Failed to create Record Object",__func__);
         return;
     }
+
+    //Rdi
+    result = createRdi();
+    if(result != MM_CAMERA_OK) {
+        LOGE("%s X: Failed to create Rdi Object",__func__);
+        return;
+    }
     mCameraState = CAMERA_STATE_READY;
 
     LOGI("QCameraHardwareInterface: X");
@@ -340,6 +374,11 @@ QCameraHardwareInterface::~QCameraHardwareInterface()
     if (mStreamLiveSnap){
         QCameraStream_Snapshot::deleteInstance (mStreamLiveSnap);
         mStreamLiveSnap = NULL;
+    }
+
+    if (mStreamRdi){
+        QCameraStream_Rdi::deleteInstance (mStreamRdi);
+        mStreamRdi = NULL;
     }
 
     pthread_mutex_destroy(&mAsyncCmdMutex);
@@ -714,6 +753,26 @@ processPreviewChannelEvent(mm_camera_ch_event_type_t channelEvent, app_notify_cb
     return;
 }
 
+void QCameraHardwareInterface::
+processRdiChannelEvent(mm_camera_ch_event_type_t channelEvent, app_notify_cb_t *app_cb) {
+    LOGI("processRdiChannelEvent: E");
+    switch(channelEvent) {
+        case MM_CAMERA_CH_EVT_STREAMING_ON:
+            mCameraState =
+                isZSLMode() ? CAMERA_STATE_ZSL : CAMERA_STATE_PREVIEW;
+            break;
+        case MM_CAMERA_CH_EVT_STREAMING_OFF:
+            mCameraState = CAMERA_STATE_READY;
+            break;
+        case MM_CAMERA_CH_EVT_DATA_DELIVERY_DONE:
+            break;
+        default:
+            break;
+    }
+    LOGI("processRdiChannelEvent: X");
+    return;
+}
+
 void QCameraHardwareInterface::processRecordChannelEvent(
   mm_camera_ch_event_type_t channelEvent, app_notify_cb_t *app_cb) {
     LOGI("processRecordChannelEvent: E");
@@ -776,6 +835,9 @@ void QCameraHardwareInterface::processChannelEvent(
     switch(event->ch) {
         case MM_CAMERA_CH_PREVIEW:
             processPreviewChannelEvent(event->evt, app_cb);
+            break;
+        case MM_CAMERA_CH_RDI:
+            processRdiChannelEvent(event->evt, app_cb);
             break;
         case MM_CAMERA_CH_VIDEO:
             processRecordChannelEvent(event->evt, app_cb);
@@ -990,7 +1052,8 @@ status_t QCameraHardwareInterface::startPreview()
         LOGE("%s:  HAL::startPreview begin", __func__);
 
         if(QCAMERA_HAL_PREVIEW_START == mPreviewState &&
-           (mPreviewWindow || isNoDisplayMode())) {
+           (mPreviewWindow || isNoDisplayMode() ||
+               (getChannelInterface() == STREAM_RAW))) {
             LOGE("%s:  start preview now", __func__);
             retVal = startPreview2();
             if(retVal == NO_ERROR)
@@ -1090,6 +1153,7 @@ status_t QCameraHardwareInterface::startPreview2()
     mStreamDisplay->setMode(myMode & CAMERA_ZSL_MODE);
     mStreamSnap->setMode(myMode & CAMERA_ZSL_MODE);
     mStreamRecord->setMode(myMode & CAMERA_ZSL_MODE);
+    mStreamRdi->setMode(myMode & CAMERA_ZSL_MODE);
     LOGE("%s: myMode = %d", __func__, myMode);
 
     LOGE("%s: setPreviewWindow", __func__);
@@ -1111,7 +1175,22 @@ status_t QCameraHardwareInterface::startPreview2()
             return BAD_VALUE;
         }
     }else{
-        ret = mStreamDisplay->start();
+        if (mChannelInterfaceMask == STREAM_RAW)
+            ret = mStreamRdi->start();
+        else if (mChannelInterfaceMask == STREAM_IMAGE_AND_RAW) {
+            ret = mStreamDisplay->start();
+            if (MM_CAMERA_OK != ret){
+                LOGE("%s: X error - can't start stream!", __func__);
+                return BAD_VALUE;
+            }
+            ret = mStreamRdi->start();
+            if (MM_CAMERA_OK != ret){
+                mStreamDisplay->stop();
+                LOGE("%s: X error - can't start stream!", __func__);
+                return BAD_VALUE;
+            }
+        } else
+            ret = mStreamDisplay->start();
     }
 
     /*call QCameraStream_noneZSL::start() */
@@ -1195,7 +1274,13 @@ void QCameraHardwareInterface::stopPreviewInternal()
         /* take care snapshot object for ZSL mode */
         mStreamSnap->stop();
     }
-    mStreamDisplay->stop();
+    if (mChannelInterfaceMask == STREAM_RAW)
+        mStreamRdi->stop();
+    else if (mChannelInterfaceMask == STREAM_IMAGE_AND_RAW) {
+        mStreamDisplay->stop();
+        mStreamRdi->stop();
+    } else
+       mStreamDisplay->stop();
 
     mCameraState = CAMERA_STATE_PREVIEW_STOP_CMD_SENT;
     LOGI("stopPreviewInternal: X");
@@ -1479,7 +1564,22 @@ void QCameraHardwareInterface::pausePreviewForSnapshot()
 status_t QCameraHardwareInterface::resumePreviewAfterSnapshot()
 {
     status_t ret = NO_ERROR;
-    ret = mStreamDisplay->start();
+    if (mChannelInterfaceMask == STREAM_RAW)
+        ret = mStreamRdi->start();
+    else if (mChannelInterfaceMask == STREAM_IMAGE_AND_RAW) {
+        ret = mStreamDisplay->start();
+        if (MM_CAMERA_OK != ret){
+            LOGE("%s: X error - can't start stream!", __func__);
+            return BAD_VALUE;
+        }
+        ret = mStreamRdi->start();
+        if (MM_CAMERA_OK != ret){
+            mStreamDisplay->stop();
+            LOGE("%s: X error - can't start stream!", __func__);
+            return BAD_VALUE;
+        }
+    } else
+        ret = mStreamDisplay->start();
     return ret;
 }
 
@@ -1565,12 +1665,17 @@ status_t  QCameraHardwareInterface::takePicture()
 {
     LOGI("takePicture: E");
     status_t ret = MM_CAMERA_OK;
+    uint32_t stream_info;
     Mutex::Autolock lock(mLock);
 
     mStreamSnap->resetSnapshotCounters( );
     switch(mPreviewState) {
     case QCAMERA_HAL_PREVIEW_STARTED:
         mStreamSnap->setFullSizeLiveshot(false);
+		/*Currently concurrent streaming is not enabled for snapshot
+              So in snapshot mode, we turn of the RDI channel and configure backend
+              for only pixel stream*/
+		
         if (isZSLMode()) {
             if (mStreamSnap != NULL) {
                 pausePreviewForZSL();
@@ -1599,6 +1704,14 @@ status_t  QCameraHardwareInterface::takePicture()
 
         /* stop preview */
         pausePreviewForSnapshot();
+        if (mChannelInterfaceMask != STREAM_IMAGE) {
+          stream_info = STREAM_IMAGE;
+          cam_config_set_parm(mCameraId,
+            MM_CAMERA_PARM_CH_INTERFACE, &stream_info);
+          cam_config_get_parm(mCameraId,
+            MM_CAMERA_PARM_CH_INTERFACE, &stream_info);
+          setChannelInterface(stream_info);
+        }
 
         /* call Snapshot start() :*/
         ret =  mStreamSnap->start();
@@ -2062,6 +2175,12 @@ void QCameraHardwareInterface::dumpFrameToFile(struct msm_frame* newFrame,
             snprintf(buf, sizeof(buf),"/data/%dt_%dx%d.yuv", mDumpFrmCnt, w, h);
             file_fd = open(buf, O_RDWR | O_CREAT, 0777);
             break;
+          case HAL_DUMP_FRM_RDI:
+            w = mDimension.rdi0_width;
+            h = mDimension.rdi0_height;
+            snprintf(buf, sizeof(buf),"/data/%dr_%dx%d.yuv", mDumpFrmCnt, w, h);
+            file_fd = open(buf, O_RDWR | O_CREAT, 0777);
+            break;
           default:
             w = h = 0;
             file_fd = -1;
@@ -2510,6 +2629,16 @@ void QCameraHardwareInterface::takePicturePrepareHardware()
 bool QCameraHardwareInterface::isNoDisplayMode()
 {
   return (mNoDisplayMode != 0);
+}
+
+uint32_t QCameraHardwareInterface::getChannelInterface()
+{
+  return mChannelInterfaceMask;
+}
+
+void QCameraHardwareInterface::setChannelInterface(uint32_t value)
+{
+  mChannelInterfaceMask = value;
 }
 
 void QCameraHardwareInterface::pausePreviewForZSL()

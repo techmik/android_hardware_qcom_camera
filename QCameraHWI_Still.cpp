@@ -2104,7 +2104,7 @@ status_t QCameraStream_Snapshot::start(void) {
 
     /* Keep track of number of snapshots to take - in case of
        multiple snapshot/burst mode */
-
+   
 	if(mHalCamCtrl->isRawSnapshot()) {
         LOGD("%s: Acquire Raw Snapshot Channel", __func__);
         ret = cam_ops_ch_acquire(mCameraId, MM_CAMERA_CH_RAW);

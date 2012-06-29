@@ -75,6 +75,9 @@ int mm_camera_ch_util_get_num_stream(mm_camera_obj_t * my_obj,mm_camera_channel_
     case MM_CAMERA_CH_RAW:
         num =  1;
         break;
+    case MM_CAMERA_CH_RDI:
+        num =  1;
+        break;
     case MM_CAMERA_CH_PREVIEW:
         num =  1;
         break;
@@ -107,6 +110,9 @@ void mm_camera_ch_util_get_stream_objs(mm_camera_obj_t * my_obj,
         break;
     case MM_CAMERA_CH_PREVIEW:
         *stream1 = &my_obj->ch[ch_type].preview.stream;
+        break;
+    case MM_CAMERA_CH_RDI:
+        *stream1 = &my_obj->ch[ch_type].rdi.stream;
         break;
     case MM_CAMERA_CH_VIDEO:
         *stream1 = &my_obj->ch[ch_type].video.video;
@@ -141,6 +147,10 @@ static int32_t mm_camera_ch_util_set_fmt(mm_camera_obj_t * my_obj,
         break;
     case MM_CAMERA_CH_PREVIEW:
         stream1 = &my_obj->ch[ch_type].preview.stream;
+        fmt1 = &fmt->def;
+        break;
+    case MM_CAMERA_CH_RDI:
+        stream1 = &my_obj->ch[ch_type].rdi.stream;
         fmt1 = &fmt->def;
         break;
     case MM_CAMERA_CH_VIDEO:
@@ -197,6 +207,10 @@ static int32_t mm_camera_ch_util_acquire(mm_camera_obj_t * my_obj,
     case MM_CAMERA_CH_PREVIEW:
         stream1 = &my_obj->ch[ch_type].preview.stream;
         type1 = MM_CAMERA_STREAM_PREVIEW;
+        break;
+    case MM_CAMERA_CH_RDI:
+        stream1 = &my_obj->ch[ch_type].rdi.stream;
+        type1 = MM_CAMERA_STREAM_RDI0;
         break;
     case MM_CAMERA_CH_VIDEO:
         stream1 = &my_obj->ch[ch_type].video.video;
@@ -260,6 +274,10 @@ static int32_t mm_camera_ch_util_stream_null_val(mm_camera_obj_t * my_obj,
             rc = mm_camera_stream_fsm_fn_vtbl(my_obj, &my_obj->ch[ch_type].preview.stream,
                                               evt, NULL);
             break;
+        case MM_CAMERA_CH_RDI:
+            rc = mm_camera_stream_fsm_fn_vtbl(my_obj, &my_obj->ch[ch_type].rdi.stream,
+                                              evt, NULL);
+            break;
         case MM_CAMERA_CH_VIDEO:
             rc = mm_camera_stream_fsm_fn_vtbl(my_obj,
                             &my_obj->ch[ch_type].video.video, evt,
@@ -301,6 +319,11 @@ static int32_t mm_camera_ch_util_reg_buf(mm_camera_obj_t * my_obj,
         case MM_CAMERA_CH_PREVIEW:
             rc = mm_camera_stream_fsm_fn_vtbl(my_obj,
                                              &my_obj->ch[ch_type].preview.stream, evt,
+                                             (mm_camera_buf_def_t *)val);
+            break;
+        case MM_CAMERA_CH_RDI:
+            rc = mm_camera_stream_fsm_fn_vtbl(my_obj,
+                                             &my_obj->ch[ch_type].rdi.stream, evt,
                                              (mm_camera_buf_def_t *)val);
             break;
         case MM_CAMERA_CH_VIDEO:
@@ -423,6 +446,14 @@ static int32_t mm_camera_ch_util_qbuf(mm_camera_obj_t *my_obj,
         CDBG("buffer fd = %d, length = %d, vaddr = %p\n",
          val->def.frame->fd, val->def.frame->ion_alloc.len, val->def.frame->buffer);
         break;
+    case MM_CAMERA_CH_RDI:
+        rc = mm_camera_stream_fsm_fn_vtbl(my_obj,
+                                         &my_obj->ch[ch_type].rdi.stream, evt,
+                                         &val->def);
+        cache_frame = val->def.frame;
+        CDBG("buffer fd = %d, length = %d, vaddr = %p\n",
+         val->def.frame->fd, val->def.frame->ion_alloc.len, val->def.frame->buffer);
+        break;
     case MM_CAMERA_CH_VIDEO:
         {
             rc = mm_camera_stream_fsm_fn_vtbl(my_obj,
@@ -510,6 +541,11 @@ static int mm_camera_ch_util_get_crop(mm_camera_obj_t *my_obj,
     case MM_CAMERA_CH_PREVIEW:
         rc = mm_camera_stream_fsm_fn_vtbl(my_obj,
                                     &my_obj->ch[ch_type].preview.stream, evt,
+                                    &crop->crop);
+        break;
+    case MM_CAMERA_CH_RDI:
+        rc = mm_camera_stream_fsm_fn_vtbl(my_obj,
+                                    &my_obj->ch[ch_type].rdi.stream, evt,
                                     &crop->crop);
         break;
     case MM_CAMERA_CH_VIDEO:
