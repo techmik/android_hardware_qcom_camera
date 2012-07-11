@@ -674,7 +674,7 @@ status_t QCameraStream_Snapshot::deinitRawSnapshotBuffers(void)
 {
     int ret = NO_ERROR;
 
-    LOGD("%s: E", __func__);
+    ALOGD("%s: E", __func__);
 
     /* deinit buffers only if we have already allocated */
     if (getSnapshotState() >= SNAPSHOT_STATE_BUF_INITIALIZED ){

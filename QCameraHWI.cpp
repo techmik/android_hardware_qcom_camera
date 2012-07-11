@@ -129,13 +129,13 @@ int32_t QCameraHardwareInterface::createPreview()
 int32_t QCameraHardwareInterface::createRdi()
 {
     int32_t ret = MM_CAMERA_OK;
-    LOGV("%s : BEGIN",__func__);
+    ALOGV("%s : BEGIN",__func__);
 
-    LOGE("Mymode Preview = %d",myMode);
+    ALOGE("Mymode Preview = %d",myMode);
     mStreamRdi = QCameraStream_Rdi::createInstance(mCameraId,
                                                            myMode);
     if (!mStreamRdi) {
-        LOGE("%s: error - can't creat preview stream!", __func__);
+        ALOGE("%s: error - can't creat preview stream!", __func__);
         return BAD_VALUE;
     }
 
@@ -144,10 +144,10 @@ int32_t QCameraHardwareInterface::createRdi()
     /*now init all the buffers and send to steam object*/
     ret = mStreamRdi->init();
     if (MM_CAMERA_OK != ret){
-        LOGE("%s: error - can't init Rdi channel!", __func__);
+        ALOGE("%s: error - can't init Rdi channel!", __func__);
         return BAD_VALUE;
     }
-    LOGV("%s : END",__func__);
+    ALOGV("%s : END",__func__);
     return ret;
 }
 
@@ -313,7 +313,7 @@ QCameraHardwareInterface(int cameraId, int mode)
     //Rdi
     result = createRdi();
     if(result != MM_CAMERA_OK) {
-        LOGE("%s X: Failed to create Rdi Object",__func__);
+        ALOGE("%s X: Failed to create Rdi Object",__func__);
         return;
     }
     mCameraState = CAMERA_STATE_READY;
@@ -755,7 +755,7 @@ processPreviewChannelEvent(mm_camera_ch_event_type_t channelEvent, app_notify_cb
 
 void QCameraHardwareInterface::
 processRdiChannelEvent(mm_camera_ch_event_type_t channelEvent, app_notify_cb_t *app_cb) {
-    LOGI("processRdiChannelEvent: E");
+    ALOGI("processRdiChannelEvent: E");
     switch(channelEvent) {
         case MM_CAMERA_CH_EVT_STREAMING_ON:
             mCameraState =
@@ -769,7 +769,7 @@ processRdiChannelEvent(mm_camera_ch_event_type_t channelEvent, app_notify_cb_t *
         default:
             break;
     }
-    LOGI("processRdiChannelEvent: X");
+    ALOGI("processRdiChannelEvent: X");
     return;
 }
 
@@ -1184,13 +1184,13 @@ status_t QCameraHardwareInterface::startPreview2()
         else if (mChannelInterfaceMask == STREAM_IMAGE_AND_RAW) {
             ret = mStreamDisplay->start();
             if (MM_CAMERA_OK != ret){
-                LOGE("%s: X error - can't start stream!", __func__);
+                ALOGE("%s: X error - can't start stream!", __func__);
                 return BAD_VALUE;
             }
             ret = mStreamRdi->start();
             if (MM_CAMERA_OK != ret){
                 mStreamDisplay->stop();
-                LOGE("%s: X error - can't start stream!", __func__);
+                ALOGE("%s: X error - can't start stream!", __func__);
                 return BAD_VALUE;
             }
         } else
@@ -1574,13 +1574,13 @@ status_t QCameraHardwareInterface::resumePreviewAfterSnapshot()
     else if (mChannelInterfaceMask == STREAM_IMAGE_AND_RAW) {
         ret = mStreamDisplay->start();
         if (MM_CAMERA_OK != ret){
-            LOGE("%s: X error - can't start stream!", __func__);
+            ALOGE("%s: X error - can't start stream!", __func__);
             return BAD_VALUE;
         }
         ret = mStreamRdi->start();
         if (MM_CAMERA_OK != ret){
             mStreamDisplay->stop();
-            LOGE("%s: X error - can't start stream!", __func__);
+            ALOGE("%s: X error - can't start stream!", __func__);
             return BAD_VALUE;
         }
     } else
@@ -1740,7 +1740,7 @@ status_t  QCameraHardwareInterface::takePicture()
       break;
     case QCAMERA_HAL_RECORDING_STARTED:
       if(mStateLiveshot) {
-          LOGE("takePicture : Duplicate TakePicture Call");
+          ALOGE("takePicture : Duplicate TakePicture Call");
           return ret;
       }
       if (canTakeFullSizeLiveshot()) {

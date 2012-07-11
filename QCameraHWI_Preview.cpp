@@ -1243,7 +1243,7 @@ status_t QCameraStream_preview::start()
     ALOGE(" %s : initDisplayBuffers",__func__);
     ret = cam_config_prepare_buf(mCameraId, &mDisplayBuf);
     if(ret != MM_CAMERA_OK) {
-      LOGV("%s:reg preview buf err=%d\n", __func__, ret);
+      ALOGV("%s:reg preview buf err=%d\n", __func__, ret);
       ret = BAD_VALUE;
       goto error;
     } else {

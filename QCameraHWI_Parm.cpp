@@ -786,10 +786,10 @@ void QCameraHardwareInterface::initDefaultParameters()
         //Query for min and max fps values from lower layer
         if(MM_CAMERA_OK != cam_config_get_parm(mCameraId,
                            MM_CAMERA_PARM_FPS_RANGE, &mSensorFpsRange)){
-            LOGE("error: failed to get fps range from sensor");
+            ALOGE("error: failed to get fps range from sensor");
             return;
         } else {
-            LOGD("sensor fps range = (%f, %f)", mSensorFpsRange.min_fps,
+            ALOGD("sensor fps range = (%f, %f)", mSensorFpsRange.min_fps,
                             mSensorFpsRange.max_fps);
 
             mSupportedFpsRanges = new android::FPSRange[ALL_FPS_RANGES_COUNT];
@@ -809,7 +809,7 @@ void QCameraHardwareInterface::initDefaultParameters()
 
             mFpsRangesSupportedValues = create_fps_str(mSupportedFpsRanges, mSupportedFpsRangesCount);
 
-            LOGD("supported fps ranges = %s", mFpsRangesSupportedValues.string());
+            ALOGD("supported fps ranges = %s", mFpsRangesSupportedValues.string());
             mParameters.set(QCameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE,
                 mFpsRangesSupportedValues);
             mParameters.setPreviewFpsRange(mSupportedFpsRanges[mSupportedFpsRangesCount-1].minFPS,
@@ -2618,7 +2618,7 @@ status_t QCameraHardwareInterface::setPreviewFpsRange(const QCameraParameters& p
     }
 
     if(mSupportedFpsRanges == NULL) {
-        LOGE("%s: error : Supported FPS ranges are not initialized.", __func__);
+        ALOGE("%s: error : Supported FPS ranges are not initialized.", __func__);
         goto end;
     }
 
@@ -4155,12 +4155,12 @@ status_t QCameraHardwareInterface::setChannelInterfaceMask(const CameraParameter
 
   if( NO_ERROR != cam_config_set_parm(mCameraId,
             MM_CAMERA_PARM_CH_INTERFACE, &channel_stream_info)) {
-    LOGE("%s: MM_CAMERA_PARM_CH_INTERFACE failed", __func__);
+    ALOGE("%s: MM_CAMERA_PARM_CH_INTERFACE failed", __func__);
     return FAILED_TRANSACTION;
   }
   if( NO_ERROR != cam_config_get_parm(mCameraId,
             MM_CAMERA_PARM_CH_INTERFACE, &mChannelInterfaceMask)) {
-    LOGE("%s: MM_CAMERA_PARM_CH_INTERFACE failed", __func__);
+    ALOGE("%s: MM_CAMERA_PARM_CH_INTERFACE failed", __func__);
     return FAILED_TRANSACTION;
   }
   mParameters.set("channel-stream-num", mChannelInterfaceMask);

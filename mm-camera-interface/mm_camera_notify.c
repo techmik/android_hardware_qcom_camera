@@ -395,7 +395,7 @@ static void mm_camera_read_rdi_frame(mm_camera_obj_t * my_obj)
     mm_camera_ch_data_buf_t data[MM_CAMERA_BUF_CB_MAX];
 
     if (!my_obj->ch[MM_CAMERA_CH_RDI].acquired) {
-        LOGE("Rdi channel is not in acquired state \n");
+        ALOGE("Rdi channel is not in acquired state \n");
         return;
     }
     stream = &my_obj->ch[MM_CAMERA_CH_RDI].rdi.stream;
@@ -403,7 +403,7 @@ static void mm_camera_read_rdi_frame(mm_camera_obj_t * my_obj)
     if (idx < 0) {
         return;
     }
-    LOGE("%s Read RDI frame %d ", __func__, idx);
+    ALOGE("%s Read RDI frame %d ", __func__, idx);
     pthread_mutex_lock(&my_obj->ch[MM_CAMERA_CH_RDI].mutex);
     for( i=0;i<MM_CAMERA_BUF_CB_MAX;i++) {
         if((my_obj->ch[MM_CAMERA_CH_RDI].buf_cb[i].cb) &&
@@ -463,7 +463,7 @@ static void mm_camera_read_preview_frame(mm_camera_obj_t * my_obj)
     if (idx < 0) {
         return;
     }
-    LOGE("%s Read Preview frame %d ", __func__, idx);
+    ALOGE("%s Read Preview frame %d ", __func__, idx);
     pthread_mutex_lock(&my_obj->ch[MM_CAMERA_CH_PREVIEW].mutex);
     for( i=0;i<MM_CAMERA_BUF_CB_MAX;i++) {
         if((my_obj->ch[MM_CAMERA_CH_PREVIEW].buf_cb[i].cb) &&
