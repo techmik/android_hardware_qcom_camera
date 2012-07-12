@@ -59,7 +59,7 @@ ifneq ($(USE_CAMERA_STUB),true)
             QCameraHWI.cpp QCameraHWI_Preview.cpp \
             QCameraHWI_Record_7x27A.cpp QCameraHWI_Still.cpp \
             QCameraHWI_Mem.cpp QCameraHWI_Display.cpp \
-            QCameraStream.cpp QualcommCamera2.cpp QCameraHWI_Rdi.cpp
+            QCameraStream.cpp QualcommCamera2.cpp QCameraHWI_Rdi.cpp QCameraParameters.cpp
         else
           LOCAL_HAL_FILES := QCameraHAL.cpp QCameraHWI_Parm.cpp\
             QCameraHWI.cpp QCameraHWI_Preview.cpp \
@@ -69,7 +69,7 @@ ifneq ($(USE_CAMERA_STUB),true)
         endif
 
       else
-        LOCAL_HAL_FILES := QualcommCamera.cpp QualcommCameraHardware.cpp
+        LOCAL_HAL_FILES := QualcommCamera.cpp QualcommCameraHardware.cpp QCameraParameters.cpp
       endif
 
       LOCAL_CFLAGS+= -DHW_ENCODE
