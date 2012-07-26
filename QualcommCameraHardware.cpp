@@ -20,7 +20,7 @@
 #define ALOG_NIDEBUG 0
 #define ALOG_TAG "QualcommCameraHardware"
 #include <utils/Log.h>
-#include "QualcommCameraHardware.h"
+#include <QualcommCameraHardware.h>
 
 #include <utils/Errors.h>
 #include <utils/threads.h>
@@ -42,7 +42,7 @@
 #include <linux/android_pmem.h>
 #endif
 #include <linux/ioctl.h>
-#include <camera/QCameraParameters.h>
+#include <QCameraParameters.h>
 #include <media/mediarecorder.h>
 #include <gralloc_priv.h>
 #include <genlock.h>
@@ -72,11 +72,11 @@ extern "C" {
 #include <stdlib.h>
 
 
-#include <camera.h>
-#include <cam_fifo.h>
-#include <liveshot.h>
-#include <jpege.h>
-#include <jpeg_encoder.h>
+//#include <camera.h>
+//#include <cam_fifo.h>
+//#include <liveshot.h>
+//#include <jpege.h>
+//#include <jpeg_encoder.h>
 
 #define DUMP_LIVESHOT_JPEG_FILE 0
 
@@ -10022,4 +10022,4 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
 //    ALOGE("Unable to find matching camera info for ID %d", cameraId);
 }
 
-}; // namespace android
+} // namespace android
