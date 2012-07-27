@@ -20,7 +20,7 @@
 
 #define ICS
 
-//#include <camera/CameraHardwareInterface.h>
+#include <CameraHardwareInterface.h>
 #include <utils/threads.h>
 #include <binder/MemoryBase.h>
 #include <binder/MemoryHeapBase.h>
@@ -29,7 +29,7 @@
 #ifdef ICS
 #include <hardware/camera.h>
 #endif
-#include "camera/Camera.h"
+#include <camera/Camera.h>
 #include <QCameraParameters.h>
 #include <system/window.h>
 #include <system/camera.h>
