@@ -19,7 +19,7 @@
 #include <utils/Log.h>
 #include <string.h>
 #include <stdlib.h>
-#include <QCameraParameters.h>
+#include <camera/QCameraParameters.h>
 
 namespace android {
 // Parameter keys to communicate between camera application and driver.
