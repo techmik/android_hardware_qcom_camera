@@ -27,7 +27,7 @@
 /* include QCamera Hardware Interface Header*/
 #include "QualcommCamera.h"
 #include "QualcommCameraHardware.h"
-//#include <camera/CameraHardwareInterface.h>
+#include <CameraHardwareInterface.h>
 
 extern "C" {
 #include <sys/time.h>
@@ -231,7 +231,6 @@ static void cam_data_callback(int32_t msgType,
     }
   }
 }
-
 static void cam_data_callback_timestamp(nsecs_t timestamp,
                                         int32_t msgType,
                                         const sp<IMemory>& dataPtr,

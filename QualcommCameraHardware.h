@@ -20,7 +20,7 @@
 
 #define ICS
 
-#include <CameraHardwareInterface.h>
+//#include <camera/CameraHardwareInterface.h>
 #include <utils/threads.h>
 #include <binder/MemoryBase.h>
 #include <binder/MemoryHeapBase.h>
