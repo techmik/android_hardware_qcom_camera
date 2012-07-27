@@ -27,7 +27,7 @@
 /* include QCamera Hardware Interface Header*/
 #include "QualcommCamera.h"
 #include "QualcommCameraHardware.h"
-//#include <camera/CameraHardwareInterface.h>
+#include "CameraHardwareInterface.h"
 
 extern "C" {
 #include <sys/time.h>

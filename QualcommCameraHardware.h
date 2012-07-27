@@ -29,8 +29,8 @@
 #ifdef ICS
 #include <hardware/camera.h>
 #endif
-#include <camera/Camera.h>
-#include <camera/QCameraParameters.h>
+#include "Camera.h"
+#include <QCameraParameters.h>
 #include <system/window.h>
 #include <system/camera.h>
 #include <hardware/camera.h>
@@ -41,7 +41,8 @@
 extern "C" {
 #include <linux/android_pmem.h>
 #include <linux/ion.h>
-#include <mm_camera_interface.h>
+#include <mm-camera-interface/mm_camera.h>
+#include <mm-camera-interface/mm_camera_interface2.h>
 }
 
 struct str_map {

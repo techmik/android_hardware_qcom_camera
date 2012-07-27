@@ -42,7 +42,7 @@
 #include <linux/android_pmem.h>
 #endif
 #include <linux/ioctl.h>
-#include <camera/QCameraParameters.h>
+#include "QCameraParameters.h"
 #include <media/mediarecorder.h>
 #include <gralloc_priv.h>
 #include <genlock.h>
@@ -72,11 +72,11 @@ extern "C" {
 #include <stdlib.h>
 
 
-#include <camera.h>
-#include <cam_fifo.h>
-#include <liveshot.h>
-#include <jpege.h>
-#include <jpeg_encoder.h>
+#include <mm-camera-interface/mm_camera.h>
+//#include <cam_fifo.h>
+//#include <liveshot.h>
+//#include <jpege.h>
+#include <mm-camera-interface/mm_jpeg_encoder.h>
 
 #define DUMP_LIVESHOT_JPEG_FILE 0
 
